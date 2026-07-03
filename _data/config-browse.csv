@@ -1,0 +1,8 @@
+field,translate_id_browse,lang,btn,hidden,translate_id_sort_name
+date,metadata-date,en;pt,,,metadata-date
+subject-en,,en,true
+subject-pt,,pt,true
+locations_en,metadata-location,en,true
+locations_pt,metadata-location,pt,true
+language,metadata-language,en;pt,true
+words_found,metadata-words-featured,en;pt,true

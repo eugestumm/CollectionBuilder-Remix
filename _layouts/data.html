@@ -1,0 +1,22 @@
+---
+# "Data" page with table and data download options
+layout: page
+custom-foot: js/table-js.html
+---
+{% assign fields = site.data.config-table | where_exp: 'field', 'field.lang contains page.lang' | map: 'translate_id_table' %}
+{% include data-download-modal.html %}
+
+{{ content }}
+
+<div class="table-responsive-md">
+    <table id="item-table" class="table table-striped">
+        <thead>
+            <tr>
+                {% for f in fields %}
+                <th scope="col">{{ site.data.config-translation | where: "translate_id", f | map: page.lang | first }}</th>
+                {% endfor %}
+                <th>Link</th>
+            </tr>
+        </thead>
+    </table>
+</div>

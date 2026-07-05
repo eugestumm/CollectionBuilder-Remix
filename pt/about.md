@@ -1,10 +1,6 @@
 ---
 title: Sobre
 layout: about
-# include CollectionBuilder info at bottom
-credits: true
-# Edit the markdown on in this file to describe your collection
-# Look in _includes/feature for options to easily add features to the page
 ---
 
 # Sobre este Projeto
@@ -51,4 +47,4 @@ Para colaborações, dúvidas e assistência técnica, entre em contato com Euge
 
 ## O Arquivo Digital do Pajubá Utiliza o Framework CollectionBuilder
 
-Agradecemos a [@gbventura](https://gbventura.github.io/pinatabooks/) por sua implementação bilíngue do CollectionBuilder. Esta edição é baseada em seu código.  
+Agradecemos a [@gbventura](https://gbventura.github.io/pinatabooks/) por sua implementação bilíngue do CollectionBuilder. Esta edição é baseada em seu código.

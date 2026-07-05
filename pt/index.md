@@ -1,4 +1,6 @@
 ---
-layout: home-infographic
 title: Início
+layout: home-infographic
 ---
+
+

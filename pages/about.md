@@ -2,10 +2,6 @@
 title: About
 layout: about
 permalink: /about.html
-# include CollectionBuilder info at bottom
-credits: true
-# Edit the markdown on in this file to describe your collection
-# Look in _includes/feature for options to easily add features to the page
 ---
 
 # About this Project
@@ -49,4 +45,4 @@ For collaborations, inquiries, and technical assistance, please contact Euge Stu
 
 ## Pajubá Digital Archive Utilizes CollectionBuilder Framework
 
-Special thanks to [@gbventura](https://gbventura.github.io/pinatabooks/) and colleagues for their implementation of a bilingual version of CollectionBuilder. This bilingual edition forks the technology they developed. 
+Special thanks to [@gbventura](https://gbventura.github.io/pinatabooks/) and colleagues for their implementation of a bilingual version of CollectionBuilder. This bilingual edition forks the technology they developed.

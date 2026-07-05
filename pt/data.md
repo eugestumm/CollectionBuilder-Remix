@@ -1,11 +1,9 @@
 ---
 title: Metadados
 layout: data
-# see _data/config-table.csv for table display options
-# a table visualization will be added below the content in this file
 ---
 
-## Metadados da Coleção
+## Metadados da Coleção - Teste!
 
 A tabela abaixo oferece organização e busca básica do conteúdo da coleção. 
 Use o botão "CSV" ou "Excel" abaixo para baixar os metadados filtrados que você vê na página no formato de sua preferência. 

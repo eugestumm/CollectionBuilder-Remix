@@ -1,7 +1,6 @@
 ---
-title: Item da coleção
+title: Item da Coleção
 layout: item
-# see _data/config-metadata.csv for display options
-# do not add content to this file
 ---
+
 

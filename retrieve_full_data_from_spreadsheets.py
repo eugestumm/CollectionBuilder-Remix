@@ -6,7 +6,7 @@ retrieving the spreadsheet and getting its data into memory / onto disk:
   1. Downloads a .ods (OpenDocument Spreadsheet) file from a public Google
      Sheets "publish to web" URL — done ONCE per run.
   2. Reads several sheets/tabs from that single downloaded file:
-       - "DO_NOT_TOUCH(Converter_Interface)" -> exported to _data/books-metadata.csv
+       - "DO_NOT_TOUCH(Converter_Interface)" -> exported to _data/main-metadata.csv
        - "nav-bar"                           -> exported to _data/config-nav.csv
        - "config-browse"                     -> exported to _data/config-browse.csv
        - "config-map"                        -> exported to _data/config-map.csv
@@ -19,7 +19,7 @@ retrieving the spreadsheet and getting its data into memory / onto disk:
   3. Hands each sheet's data off to a dedicated script in CB-Remix-scripts/,
      each doing exactly one job:
        - CB-Remix-scripts/export_metadata_csv.py               -> cleans + writes
-         the books-metadata sheet to _data/books-metadata.csv
+         the main-metadata sheet to _data/main-metadata.csv
        - CB-Remix-scripts/export_navbar_csv.py                 -> cleans + writes
          the nav-bar sheet to _data/config-nav.csv
        - CB-Remix-scripts/export_browse_csv.py                 -> cleans + writes
@@ -122,7 +122,7 @@ OUTPUT_DIR = "_data"  # relative to cwd
 # file in CB-Remix-scripts/ and knows that one sheet's specific cleanup
 # rules (which column is the phantom-row key, etc.) — see the imports above.
 EXPORT_SHEETS = {
-    "DO_NOT_TOUCH(Converter_Interface)": ("books-metadata.csv", export_metadata_csv),
+    "DO_NOT_TOUCH(Converter_Interface)": ("main-metadata.csv", export_metadata_csv),
     "nav-bar":               ("config-nav.csv",      export_navbar_csv),
     "config-browse":         ("config-browse.csv",   export_browse_csv),
     "config-map":            ("config-map.csv",      export_map_csv),

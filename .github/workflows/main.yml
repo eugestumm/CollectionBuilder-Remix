@@ -35,7 +35,7 @@ jobs:
         run: pip install requests pandas odfpy ruamel.yaml
 
       - name: Run spreadsheet sync (no Jekyll serve)
-        run: python download_csv.py --no-serve
+        run: python retrieve_full_data_from_spreadsheets.py --no-serve
 
       - name: Commit and push changes, if any
         run: |

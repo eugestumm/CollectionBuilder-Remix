@@ -1,0 +1,269 @@
+#!/usr/bin/env python3
+"""
+download_csv.py  (project root)
+
+This is the entry point you actually run. It's responsible only for
+retrieving the spreadsheet and getting its data into memory / onto disk:
+
+  1. Downloads a .ods (OpenDocument Spreadsheet) file from a public Google
+     Sheets "publish to web" URL — done ONCE per run.
+  2. Reads three sheets/tabs from that single downloaded file:
+       - "DO_NOT_TOUCH(Converter_Interface)"  -> exported to _data/books-metadata.csv
+       - "pages"                              -> kept in memory only
+       - "config"                             -> kept in memory only
+  3. Hands each sheet's data off to a dedicated script in CB-Remix-scripts/,
+     each doing exactly one job:
+       - CB-Remix-scripts/export_metadata_csv.py      -> cleans + writes
+         the books-metadata sheet to _data/books-metadata.csv
+       - CB-Remix-scripts/update_config_yml.py         -> patches _config.yml
+       - CB-Remix-scripts/build_pages_from_sheet.py    -> writes markdown pages
+  4. Launches Jekyll via: jekyll serve
+
+All of the "what do we do with this data" logic lives in those sibling
+scripts instead, so each can be edited/iterated on independently of this
+retrieval script and of each other.
+
+Dependencies (install once):
+    pip install requests pandas odfpy ruamel.yaml
+
+Usage:
+    python download_csv.py
+"""
+
+import os
+import sys
+import pathlib
+import tempfile
+
+# ── Third-party ──────────────────────────────────────────────────────────────
+try:
+    import requests
+except ImportError:
+    sys.exit(
+        "[ERROR] 'requests' is not installed.\n"
+        "Run:  pip install requests"
+    )
+
+try:
+    import pandas as pd
+except ImportError:
+    sys.exit(
+        "[ERROR] 'pandas' is not installed.\n"
+        "Run:  pip install pandas odfpy"
+    )
+
+# ── Sibling scripts: CB-Remix-scripts/*.py ──────────────────────────────────
+# That folder is a plain directory (not a Python package, hence the hyphens
+# in its name are fine) — we just add it to sys.path so its modules can be
+# imported by their own valid identifier names. Each function lives in its
+# own file, so either can be edited/iterated on independently.
+_SCRIPTS_DIR = pathlib.Path(__file__).resolve().parent / "CB-Remix-scripts"
+sys.path.insert(0, str(_SCRIPTS_DIR))
+try:
+    from update_config_yml import update_config_yml
+    from build_pages_from_sheet import build_pages_from_sheet
+    from export_metadata_csv import export_metadata_csv
+except ImportError as exc:
+    sys.exit(
+        f"[ERROR] Could not import from {_SCRIPTS_DIR}\n"
+        f"        ({exc})\n"
+        f"        Make sure CB-Remix-scripts/update_config_yml.py,\n"
+        f"        CB-Remix-scripts/build_pages_from_sheet.py, and\n"
+        f"        CB-Remix-scripts/export_metadata_csv.py exist next to this script."
+    )
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CONFIGURATION
+# ─────────────────────────────────────────────────────────────────────────────
+ODS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4lOKlUnTG99YQ6c09QnwZ_bLxdqeIJhDRR5JQaDlgeQMFwUS2OGaWQ_3VyXIDKKPZAa3xYjTgbTLh/pub?output=ods"
+OUTPUT_DIR = "_data"  # relative to cwd
+
+# Sheets that get written to disk as CSV: {sheet name in workbook -> output filename}
+EXPORT_SHEETS = {
+    "DO_NOT_TOUCH(Converter_Interface)": "books-metadata.csv",
+}
+
+# Sheets that are only kept in memory (as DataFrames) for later use — not
+# written to disk.
+MEMORY_ONLY_SHEETS = ["pages", "config"]
+
+# _config.yml gets its fields patched from the "config" sheet, whose columns
+# are named as below (case-insensitive match against these).
+CONFIG_YML_PATH = "_config.yml"
+CONFIG_SHEET_NAME = "config"
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def download_ods(url: str) -> pathlib.Path:
+    """Download the .ods file at *url* to a temp file and return its path."""
+    print(f"[INFO] Downloading: {url}")
+    try:
+        response = requests.get(url, timeout=60, stream=True)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as exc:
+        sys.exit(f"[ERROR] Download failed: {exc}")
+
+    tmp = tempfile.NamedTemporaryFile(suffix=".ods", delete=False)
+    with tmp as fh:
+        for chunk in response.iter_content(chunk_size=8192):
+            fh.write(chunk)
+
+    return pathlib.Path(tmp.name)
+
+
+def _get_ods_cell_text(cell) -> str:
+    """Extract a cell's text, preserving paragraph breaks as "\\n".
+
+    ODS stores each line of a multi-line cell as a separate <text:p>
+    element. odfpy's teletype.extractText(), when called on the *cell*
+    directly, concatenates every descendant paragraph's text with NO
+    separator at all — so a cell like:
+        "First paragraph."
+        ""
+        "Second paragraph."
+    comes back as "First paragraph.Second paragraph." (newlines silently
+    dropped). Extracting each <text:p> individually and joining with "\\n"
+    keeps the original line breaks intact.
+    """
+    from odf.text import P
+    from odf import teletype
+
+    paragraphs = cell.getElementsByType(P)
+    if not paragraphs:
+        return ""
+    return "\n".join(teletype.extractText(p) for p in paragraphs)
+
+
+def read_sheet(ods_path: pathlib.Path, sheet_name: str) -> pd.DataFrame:
+    """Read a single named sheet from the .ods file into a DataFrame.
+
+    Uses odfpy directly (not pandas.read_excel(engine="odf")) specifically
+    to preserve line breaks inside multi-paragraph cells — see
+    _get_ods_cell_text() for why that matters.
+    """
+    from odf.opendocument import load
+    from odf.table import Table, TableRow, TableCell
+
+    print(f"[INFO] Reading sheet: {sheet_name}")
+    doc = load(str(ods_path))
+    tables = doc.spreadsheet.getElementsByType(Table)
+    table = next((t for t in tables if t.getAttribute("name") == sheet_name), None)
+
+    if table is None:
+        available = [t.getAttribute("name") for t in tables]
+        sys.exit(
+            f"[ERROR] Could not find sheet '{sheet_name}'\n"
+            f"[INFO] Available sheets: {available}"
+        )
+
+    rows_data = []
+    for row in table.getElementsByType(TableRow):
+        row_repeat = int(row.getAttribute("numberrowsrepeated") or 1)
+        row_values = []
+        for cell in row.getElementsByType(TableCell):
+            col_repeat = int(cell.getAttribute("numbercolumnsrepeated") or 1)
+            text = _get_ods_cell_text(cell)
+            row_values.extend([text] * col_repeat)
+
+        if all(v == "" for v in row_values):
+            # Don't materialize huge runs of blank filler rows (common at
+            # the tail of a Google Sheets ODS export).
+            continue
+        for _ in range(row_repeat):
+            rows_data.append(list(row_values))
+
+    while rows_data and all(v == "" for v in rows_data[-1]):
+        rows_data.pop()  # defensive: trim any trailing blank row that slipped through
+
+    if not rows_data:
+        return pd.DataFrame()
+
+    max_len = max(len(r) for r in rows_data)
+    rows_data = [r + [""] * (max_len - len(r)) for r in rows_data]
+
+    header, *data = rows_data
+    return pd.DataFrame(data, columns=header)
+
+
+def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+    """Apply the generic cleanup rule shared by the memory-only sheets
+    (pages, config): blank out literal "0" everywhere.
+
+    No column in these sheets legitimately contains a literal 0 — every
+    occurrence comes from formulas resolving blank source cells to 0.
+    Safe to strip globally rather than column-by-column.
+
+    (The books-metadata sheet has its own dedicated cleanup — including
+    this same zero-blanking plus phantom-row dropping — in
+    CB-Remix-scripts/export_metadata_csv.py, since it's specific to that
+    one sheet.)
+    """
+    return df.replace([0, "0", 0.0, "0.0"], "")
+
+
+def load_all_sheets(ods_path: pathlib.Path, output_dir: pathlib.Path) -> dict:
+    """Read every configured sheet into a DataFrame.
+
+    - Sheets in EXPORT_SHEETS are handed to export_metadata_csv() (from
+      CB-Remix-scripts/export_metadata_csv.py), which applies their
+      sheet-specific cleanup and writes them to CSV in *output_dir*.
+    - Sheets in MEMORY_ONLY_SHEETS get the generic clean_dataframe() cleanup
+      but are NOT written to disk — they're only returned, for use later
+      in the same process.
+
+    Returns a dict of {sheet_name: DataFrame} covering all loaded sheets.
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+    dataframes = {}
+
+    for sheet_name, csv_filename in EXPORT_SHEETS.items():
+        raw_df = read_sheet(ods_path, sheet_name)
+        output_path = output_dir / csv_filename
+        dataframes[sheet_name] = export_metadata_csv(raw_df, output_path)
+
+    for sheet_name in MEMORY_ONLY_SHEETS:
+        df = read_sheet(ods_path, sheet_name)
+        df = clean_dataframe(df)
+        dataframes[sheet_name] = df
+        print(f"[INFO] [{sheet_name}] Loaded into memory only ({len(df)} rows) — not exported to CSV")
+
+    return dataframes
+
+
+def main():
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Sync site content from the Google Sheet.")
+    parser.add_argument(
+        "--no-serve",
+        action="store_true",
+        help="Skip launching 'jekyll serve' after syncing (useful in CI, e.g. GitHub Actions, "
+             "where GitHub Pages builds the site itself and a blocking dev server would hang the job).",
+    )
+    args = parser.parse_args()
+
+    output_dir = pathlib.Path.cwd() / OUTPUT_DIR
+
+    # The spreadsheet is downloaded exactly once per run, right here.
+    ods_path = download_ods(ODS_URL)
+    try:
+        dataframes = load_all_sheets(ods_path, output_dir)
+    finally:
+        ods_path.unlink(missing_ok=True)  # clean up temp file
+
+    # From here on, everything works off the in-memory DataFrames above —
+    # no further contact with the spreadsheet this run. The actual
+    # page/config-building logic lives in the CB-Remix-scripts/*.py files.
+    update_config_yml(pathlib.Path.cwd() / CONFIG_YML_PATH, dataframes[CONFIG_SHEET_NAME])
+    build_pages_from_sheet(dataframes["pages"], dataframes[CONFIG_SHEET_NAME], base_dir=pathlib.Path.cwd())
+
+    if args.no_serve:
+        print("[INFO] --no-serve given, skipping 'jekyll serve'. Sync complete.")
+        return
+
+    print("[INFO] Starting Jekyll server...")
+    os.system("jekyll serve")
+
+
+if __name__ == "__main__":
+    main()

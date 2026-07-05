@@ -6,7 +6,7 @@ retrieving the spreadsheet and getting its data into memory / onto disk:
   1. Downloads a .ods (OpenDocument Spreadsheet) file from a public Google
      Sheets "publish to web" URL — done ONCE per run.
   2. Reads several sheets/tabs from that single downloaded file:
-       - "DO_NOT_TOUCH(Converter_Interface)" -> exported to _data/books-metadata.csv
+       - "DO_NOT_TOUCH(Converter_Interface)" -> exported to _data/main-metadata.csv
        - "nav-bar"                           -> exported to _data/config-nav.csv
        - "config-browse"                     -> exported to _data/config-browse.csv
        - "config-map"                        -> exported to _data/config-map.csv
@@ -19,7 +19,7 @@ retrieving the spreadsheet and getting its data into memory / onto disk:
   3. Hands each sheet's data off to a dedicated script in CB-Remix-scripts/,
      each doing exactly one job:
        - CB-Remix-scripts/export_metadata_csv.py               -> cleans + writes
-         the books-metadata sheet to _data/books-metadata.csv
+         the main-metadata sheet to _data/main-metadata.csv
        - CB-Remix-scripts/export_navbar_csv.py                 -> cleans + writes
          the nav-bar sheet to _data/config-nav.csv
        - CB-Remix-scripts/export_browse_csv.py                 -> cleans + writes
@@ -27,7 +27,10 @@ retrieving the spreadsheet and getting its data into memory / onto disk:
        - CB-Remix-scripts/export_map_csv.py                    -> cleans + writes
          the config-map sheet to _data/config-map.csv
        - CB-Remix-scripts/export_metadata_orchestrator_csv.py  -> cleans + writes
-         the metadata-orchestrator sheet to _data/config-metadata.csv
+         the metadata-orchestrator sheet to _data/config-metadata.csv (this one
+         also needs the "config" sheet — see the note in load_all_sheets()
+         below on why "config" is loaded earlier than the other memory-only
+         sheets)
        - CB-Remix-scripts/export_search_csv.py                 -> cleans + writes
          the config-search sheet to _data/config-search.csv
        - CB-Remix-scripts/export_table_csv.py                  -> cleans + writes
@@ -116,8 +119,13 @@ OUTPUT_DIR = "_data"  # relative to cwd
 # filename, exporter function)}. Each exporter function lives in its own
 # file in CB-Remix-scripts/ and knows that one sheet's specific cleanup
 # rules (which column is the phantom-row key, etc.) — see the imports above.
+#
+# NOTE: export_metadata_orchestrator_csv is special-cased in
+# load_all_sheets() below — it's the one exporter that also needs the
+# "config" sheet (to resolve language names/ids), so it's called with an
+# extra config_df argument the others don't take.
 EXPORT_SHEETS = {
-    "DO_NOT_TOUCH(Converter_Interface)": ("books-metadata.csv", export_metadata_csv),
+    "DO_NOT_TOUCH(Converter_Interface)": ("main-metadata.csv", export_metadata_csv),
     "nav-bar":               ("config-nav.csv",      export_navbar_csv),
     "config-browse":         ("config-browse.csv",   export_browse_csv),
     "config-map":            ("config-map.csv",      export_map_csv),
@@ -126,6 +134,10 @@ EXPORT_SHEETS = {
     "config-table":          ("config-table.csv",    export_table_csv),
     "translation":           ("config-translation.csv", export_translation_csv),
 }
+
+# Sheet names that need config_df passed in alongside (output_path) — see
+# the NOTE above EXPORT_SHEETS.
+SHEETS_NEEDING_CONFIG = {"metadata-orchestrator", "config-table", "config-map", "config-search", "config-browse"}
 
 # Sheets that are only kept in memory (as DataFrames) for later use — not
 # written to disk.
@@ -225,6 +237,16 @@ def read_sheet(ods_path: pathlib.Path, sheet_name: str) -> pd.DataFrame:
     max_len = max(len(r) for r in rows_data)
     rows_data = [r + [""] * (max_len - len(r)) for r in rows_data]
 
+    # Trim trailing columns that are blank in EVERY row (header included).
+    # These come from ODS cells that exist only for formatting/theme fill
+    # (e.g. banding applied across a whole sheet) and get expanded into
+    # real empty-string cells above via numbercolumnsrepeated — without
+    # this trim, one such cell on any row inflates every row out to that
+    # width, producing dozens/hundreds of empty trailing CSV columns.
+    while max_len > 0 and all(row[max_len - 1] == "" for row in rows_data):
+        max_len -= 1
+    rows_data = [row[:max_len] for row in rows_data]
+
     header, *data = rows_data
     return pd.DataFrame(data, columns=header)
 
@@ -254,17 +276,36 @@ def load_all_sheets(ods_path: pathlib.Path, output_dir: pathlib.Path) -> dict:
       but are NOT written to disk — they're only returned, for use later
       in the same process.
 
+    NOTE: "config" (normally just one of MEMORY_ONLY_SHEETS) is loaded
+    FIRST, ahead of the EXPORT_SHEETS loop, because
+    export_metadata_orchestrator_csv needs it already in hand — it
+    resolves the sheet's language names/ids from config_df to translate
+    the "metadata-orchestrator" sheet's dynamic "field" values (e.g.
+    "title-in-English") into the literal field names Jekyll expects (e.g.
+    "title"). See that script's docstring for the full explanation.
+
     Returns a dict of {sheet_name: DataFrame} covering all loaded sheets.
     """
     output_dir.mkdir(parents=True, exist_ok=True)
     dataframes = {}
 
+    # "config" first — see NOTE above.
+    config_df = read_sheet(ods_path, CONFIG_SHEET_NAME)
+    config_df = clean_dataframe(config_df)
+    dataframes[CONFIG_SHEET_NAME] = config_df
+    print(f"[INFO] [{CONFIG_SHEET_NAME}] Loaded into memory only ({len(config_df)} rows) — not exported to CSV")
+
     for sheet_name, (csv_filename, exporter) in EXPORT_SHEETS.items():
         raw_df = read_sheet(ods_path, sheet_name)
         output_path = output_dir / csv_filename
-        dataframes[sheet_name] = exporter(raw_df, output_path)
+        if sheet_name in SHEETS_NEEDING_CONFIG:
+            dataframes[sheet_name] = exporter(raw_df, output_path, config_df)
+        else:
+            dataframes[sheet_name] = exporter(raw_df, output_path)
 
     for sheet_name in MEMORY_ONLY_SHEETS:
+        if sheet_name == CONFIG_SHEET_NAME:
+            continue  # already loaded above
         df = read_sheet(ods_path, sheet_name)
         df = clean_dataframe(df)
         dataframes[sheet_name] = df

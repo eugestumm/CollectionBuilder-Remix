@@ -1,23 +1,45 @@
 #!/usr/bin/env python3
 """
-download_csv.py  (project root)
-
 This is the entry point you actually run. It's responsible only for
 retrieving the spreadsheet and getting its data into memory / onto disk:
 
   1. Downloads a .ods (OpenDocument Spreadsheet) file from a public Google
      Sheets "publish to web" URL — done ONCE per run.
-  2. Reads three sheets/tabs from that single downloaded file:
-       - "DO_NOT_TOUCH(Converter_Interface)"  -> exported to _data/books-metadata.csv
-       - "pages"                              -> kept in memory only
-       - "config"                             -> kept in memory only
+  2. Reads several sheets/tabs from that single downloaded file:
+       - "DO_NOT_TOUCH(Converter_Interface)" -> exported to _data/books-metadata.csv
+       - "nav-bar"                           -> exported to _data/config-nav.csv
+       - "config-browse"                     -> exported to _data/config-browse.csv
+       - "config-map"                        -> exported to _data/config-map.csv
+       - "metadata-orchestrator"             -> exported to _data/config-metadata.csv
+       - "config-search"                     -> exported to _data/config-search.csv
+       - "config-table"                      -> exported to _data/config-table.csv
+       - "translation"                       -> exported to _data/config-translation.csv
+       - "pages"                             -> kept in memory only
+       - "config"                            -> kept in memory only
   3. Hands each sheet's data off to a dedicated script in CB-Remix-scripts/,
      each doing exactly one job:
-       - CB-Remix-scripts/export_metadata_csv.py      -> cleans + writes
+       - CB-Remix-scripts/export_metadata_csv.py               -> cleans + writes
          the books-metadata sheet to _data/books-metadata.csv
-       - CB-Remix-scripts/update_config_yml.py         -> patches _config.yml
-       - CB-Remix-scripts/build_pages_from_sheet.py    -> writes markdown pages
+       - CB-Remix-scripts/export_navbar_csv.py                 -> cleans + writes
+         the nav-bar sheet to _data/config-nav.csv
+       - CB-Remix-scripts/export_browse_csv.py                 -> cleans + writes
+         the config-browse sheet to _data/config-browse.csv
+       - CB-Remix-scripts/export_map_csv.py                    -> cleans + writes
+         the config-map sheet to _data/config-map.csv
+       - CB-Remix-scripts/export_metadata_orchestrator_csv.py  -> cleans + writes
+         the metadata-orchestrator sheet to _data/config-metadata.csv
+       - CB-Remix-scripts/export_search_csv.py                 -> cleans + writes
+         the config-search sheet to _data/config-search.csv
+       - CB-Remix-scripts/export_table_csv.py                  -> cleans + writes
+         the config-table sheet to _data/config-table.csv
+       - CB-Remix-scripts/export_translation_csv.py            -> cleans + writes
+         the translation sheet to _data/config-translation.csv
+       - CB-Remix-scripts/update_config_yml.py                 -> patches _config.yml
+       - CB-Remix-scripts/build_pages_from_sheet.py            -> writes markdown pages
   4. Launches Jekyll via: jekyll serve
+     (skipped if run with --no-serve, e.g. in CI/GitHub Actions, where a
+     blocking dev server would hang the job and GitHub Pages builds the
+     site on its own anyway)
 
 All of the "what do we do with this data" logic lives in those sibling
 scripts instead, so each can be edited/iterated on independently of this
@@ -27,7 +49,8 @@ Dependencies (install once):
     pip install requests pandas odfpy ruamel.yaml
 
 Usage:
-    python download_csv.py
+    python download_csv.py                 # syncs data, then launches jekyll serve
+    python download_csv.py --no-serve       # syncs data only (used in CI)
 """
 
 import os
@@ -56,20 +79,36 @@ except ImportError:
 # That folder is a plain directory (not a Python package, hence the hyphens
 # in its name are fine) — we just add it to sys.path so its modules can be
 # imported by their own valid identifier names. Each function lives in its
-# own file, so either can be edited/iterated on independently.
+# own file, so any of them can be edited/iterated on independently.
 _SCRIPTS_DIR = pathlib.Path(__file__).resolve().parent / "CB-Remix-scripts"
 sys.path.insert(0, str(_SCRIPTS_DIR))
 try:
     from update_config_yml import update_config_yml
     from build_pages_from_sheet import build_pages_from_sheet
     from export_metadata_csv import export_metadata_csv
+    from export_navbar_csv import export_navbar_csv
+    from export_browse_csv import export_browse_csv
+    from export_map_csv import export_map_csv
+    from export_metadata_orchestrator_csv import export_metadata_orchestrator_csv
+    from export_search_csv import export_search_csv
+    from export_table_csv import export_table_csv
+    from export_translation_csv import export_translation_csv
 except ImportError as exc:
     sys.exit(
         f"[ERROR] Could not import from {_SCRIPTS_DIR}\n"
         f"        ({exc})\n"
-        f"        Make sure CB-Remix-scripts/update_config_yml.py,\n"
-        f"        CB-Remix-scripts/build_pages_from_sheet.py, and\n"
-        f"        CB-Remix-scripts/export_metadata_csv.py exist next to this script."
+        f"        Make sure the following exist next to this script, inside\n"
+        f"        CB-Remix-scripts/:\n"
+        f"          update_config_yml.py\n"
+        f"          build_pages_from_sheet.py\n"
+        f"          export_metadata_csv.py\n"
+        f"          export_navbar_csv.py\n"
+        f"          export_browse_csv.py\n"
+        f"          export_map_csv.py\n"
+        f"          export_metadata_orchestrator_csv.py\n"
+        f"          export_search_csv.py\n"
+        f"          export_table_csv.py\n"
+        f"          export_translation_csv.py"
     )
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -78,9 +117,19 @@ except ImportError as exc:
 ODS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4lOKlUnTG99YQ6c09QnwZ_bLxdqeIJhDRR5JQaDlgeQMFwUS2OGaWQ_3VyXIDKKPZAa3xYjTgbTLh/pub?output=ods"
 OUTPUT_DIR = "_data"  # relative to cwd
 
-# Sheets that get written to disk as CSV: {sheet name in workbook -> output filename}
+# Sheets that get written to disk as CSV: {sheet name in workbook -> (output
+# filename, exporter function)}. Each exporter function lives in its own
+# file in CB-Remix-scripts/ and knows that one sheet's specific cleanup
+# rules (which column is the phantom-row key, etc.) — see the imports above.
 EXPORT_SHEETS = {
-    "DO_NOT_TOUCH(Converter_Interface)": "books-metadata.csv",
+    "DO_NOT_TOUCH(Converter_Interface)": ("books-metadata.csv", export_metadata_csv),
+    "nav-bar":               ("config-nav.csv",      export_navbar_csv),
+    "config-browse":         ("config-browse.csv",   export_browse_csv),
+    "config-map":            ("config-map.csv",      export_map_csv),
+    "metadata-orchestrator": ("config-metadata.csv", export_metadata_orchestrator_csv),
+    "config-search":         ("config-search.csv",   export_search_csv),
+    "config-table":          ("config-table.csv",    export_table_csv),
+    "translation":           ("config-translation.csv", export_translation_csv),
 }
 
 # Sheets that are only kept in memory (as DataFrames) for later use — not
@@ -193,10 +242,9 @@ def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     occurrence comes from formulas resolving blank source cells to 0.
     Safe to strip globally rather than column-by-column.
 
-    (The books-metadata sheet has its own dedicated cleanup — including
-    this same zero-blanking plus phantom-row dropping — in
-    CB-Remix-scripts/export_metadata_csv.py, since it's specific to that
-    one sheet.)
+    (Each exported sheet has its own dedicated cleanup — including this
+    same zero-blanking plus phantom-row dropping — in its own script under
+    CB-Remix-scripts/, since the phantom-row key column differs per sheet.)
     """
     return df.replace([0, "0", 0.0, "0.0"], "")
 
@@ -204,9 +252,9 @@ def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 def load_all_sheets(ods_path: pathlib.Path, output_dir: pathlib.Path) -> dict:
     """Read every configured sheet into a DataFrame.
 
-    - Sheets in EXPORT_SHEETS are handed to export_metadata_csv() (from
-      CB-Remix-scripts/export_metadata_csv.py), which applies their
-      sheet-specific cleanup and writes them to CSV in *output_dir*.
+    - Sheets in EXPORT_SHEETS are handed to their paired exporter function
+      (from CB-Remix-scripts/), which applies that sheet's specific
+      cleanup and writes it to CSV in *output_dir*.
     - Sheets in MEMORY_ONLY_SHEETS get the generic clean_dataframe() cleanup
       but are NOT written to disk — they're only returned, for use later
       in the same process.
@@ -216,10 +264,10 @@ def load_all_sheets(ods_path: pathlib.Path, output_dir: pathlib.Path) -> dict:
     output_dir.mkdir(parents=True, exist_ok=True)
     dataframes = {}
 
-    for sheet_name, csv_filename in EXPORT_SHEETS.items():
+    for sheet_name, (csv_filename, exporter) in EXPORT_SHEETS.items():
         raw_df = read_sheet(ods_path, sheet_name)
         output_path = output_dir / csv_filename
-        dataframes[sheet_name] = export_metadata_csv(raw_df, output_path)
+        dataframes[sheet_name] = exporter(raw_df, output_path)
 
     for sheet_name in MEMORY_ONLY_SHEETS:
         df = read_sheet(ods_path, sheet_name)
@@ -252,8 +300,7 @@ def main():
         ods_path.unlink(missing_ok=True)  # clean up temp file
 
     # From here on, everything works off the in-memory DataFrames above —
-    # no further contact with the spreadsheet this run. The actual
-    # page/config-building logic lives in the CB-Remix-scripts/*.py files.
+    # no further contact with the spreadsheet this run.
     update_config_yml(pathlib.Path.cwd() / CONFIG_YML_PATH, dataframes[CONFIG_SHEET_NAME])
     build_pages_from_sheet(dataframes["pages"], dataframes[CONFIG_SHEET_NAME], base_dir=pathlib.Path.cwd())
 

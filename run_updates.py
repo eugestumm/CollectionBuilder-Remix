@@ -13,6 +13,7 @@ retrieving the spreadsheet and getting its data into memory / onto disk:
        - "metadata-orchestrator"             -> exported to _data/config-metadata.csv
        - "config-search"                     -> exported to _data/config-search.csv
        - "config-table"                      -> exported to _data/config-table.csv
+       - "translation"                       -> exported to _data/config-translation.csv
        - "pages"                             -> kept in memory only
        - "config"                            -> kept in memory only
   3. Hands each sheet's data off to a dedicated script in CB-Remix-scripts/,
@@ -31,6 +32,8 @@ retrieving the spreadsheet and getting its data into memory / onto disk:
          the config-search sheet to _data/config-search.csv
        - CB-Remix-scripts/export_table_csv.py                  -> cleans + writes
          the config-table sheet to _data/config-table.csv
+       - CB-Remix-scripts/export_translation_csv.py            -> cleans + writes
+         the translation sheet to _data/config-translation.csv
        - CB-Remix-scripts/update_config_yml.py                 -> patches _config.yml
        - CB-Remix-scripts/build_pages_from_sheet.py            -> writes markdown pages
 
@@ -84,6 +87,7 @@ try:
     from export_metadata_orchestrator_csv import export_metadata_orchestrator_csv
     from export_search_csv import export_search_csv
     from export_table_csv import export_table_csv
+    from export_translation_csv import export_translation_csv
 except ImportError as exc:
     sys.exit(
         f"[ERROR] Could not import from {_SCRIPTS_DIR}\n"
@@ -98,7 +102,8 @@ except ImportError as exc:
         f"          export_map_csv.py\n"
         f"          export_metadata_orchestrator_csv.py\n"
         f"          export_search_csv.py\n"
-        f"          export_table_csv.py"
+        f"          export_table_csv.py\n"
+        f"          export_translation_csv.py"
     )
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -119,6 +124,7 @@ EXPORT_SHEETS = {
     "metadata-orchestrator": ("config-metadata.csv", export_metadata_orchestrator_csv),
     "config-search":         ("config-search.csv",   export_search_csv),
     "config-table":          ("config-table.csv",    export_table_csv),
+    "translation":           ("config-translation.csv", export_translation_csv),
 }
 
 # Sheets that are only kept in memory (as DataFrames) for later use — not

@@ -29,12 +29,29 @@ def build_pages_from_sheet(pages_df, config_df=None, base_dir: str = ".") -> Non
     function, so it can be copy-pasted on its own into a new
     conversation/file. Only needs `pandas` and `ruamel.yaml` installed.
 
-    Expected columns in *pages_df*:
-        filename, title-lang1, content-lang1, title-lang2, content-lang2,
-        permalink, layout, extra-metadata
+    Column names in *pages_df* are now resolved dynamically instead of
+    being hardcoded to "-lang1"/"-lang2". The actual language names are
+    read out of *config_df* (the "config" tab, columns: category, content):
+        - "lang1" category -> e.g. "English"  (spreadsheet cell B6)
+        - "lang2" category -> e.g. "Portuguese" (spreadsheet cell B8)
+    Those names are then used to build the expected column headers:
+        title-in-<lang1-name>, content-in-<lang1-name>
+        title-in-<lang2-name>, content-in-<lang2-name>
+    So if config says lang1-name = "English" and lang2-name = "Spanish",
+    the sheet must have columns "title-in-English", "content-in-English",
+    "title-in-Spanish", "content-in-Spanish". If config_df is missing, or the
+    "lang1"/"lang2" categories aren't found/blank, this falls back to the
+    generic column names "title-in-lang1"/"title-in-lang2" (etc.) so
+    nothing breaks.
 
-    *config_df* is the "config" tab (columns: category, content). It's used
-    to look up:
+    (Separately, "lang1-id"/"lang2-id" in config are still used only for
+    folder naming and the root index's `lang:` field, e.g. "en"/"pt" —
+    unrelated to the human-readable names above.)
+
+    Other expected columns in *pages_df* (unchanged):
+        filename, permalink, layout, extra-metadata
+
+    *config_df* is also used to look up:
         - "lang2-id" (e.g. "pt", "es") so the foreign-language folder is
           named after whatever language code is actually configured,
           instead of being hardcoded to "pt". Falls back to "pt" if
@@ -74,7 +91,7 @@ def build_pages_from_sheet(pages_df, config_df=None, base_dir: str = ".") -> Non
     root as <base_dir>/index.md, with a different field set matching
     Jekyll/CollectionBuilder's homepage convention:
         layout: <layout column, cleaned>
-        title:  <title-lang1>
+        title:  <title-lang1 column, whatever it's actually called>
         lang:   <config's "lang1-id", e.g. "en">
     (no permalink — the root index doesn't need one).
     The lang2 (foreign-language) version of "index" is unaffected by this
@@ -87,10 +104,6 @@ def build_pages_from_sheet(pages_df, config_df=None, base_dir: str = ".") -> Non
     from ruamel.yaml import YAML
 
     COL_FILENAME = "filename"
-    COL_TITLE_LANG1 = "title-lang1"
-    COL_CONTENT_LANG1 = "content-lang1"
-    COL_TITLE_LANG2 = "title-lang2"
-    COL_CONTENT_LANG2 = "content-lang2"
     COL_PERMALINK = "permalink"
     COL_LAYOUT = "layout"
     COL_EXTRA_METADATA = "extra-metadata"
@@ -100,19 +113,20 @@ def build_pages_from_sheet(pages_df, config_df=None, base_dir: str = ".") -> Non
     DEFAULT_LANG2_FOLDER = "pt"
     LANG1_ID_CATEGORY = "lang1-id"
     LANG2_ID_CATEGORY = "lang2-id"
+
+    # Categories for the human-readable language names used to build the
+    # dynamic column headers (e.g. "title-in-English"). These match the
+    # config tab's actual category labels: "lang1" -> "English",
+    # "lang2" -> "Portuguese" (separate from "lang1-id"/"lang2-id" below,
+    # which hold the short codes "en"/"pt").
+    LANG1_NAME_CATEGORY = "lang1"
+    LANG2_NAME_CATEGORY = "lang2"
+    DEFAULT_LANG1_NAME = "lang1"  # fallback keeps old behavior if unset
+    DEFAULT_LANG2_NAME = "lang2"
+
     CONFIG_CATEGORY_COL = "category"
     CONFIG_CONTENT_COL = "content"
     ROOT_INDEX_FILENAME = "index"
-
-    required_cols = [
-        COL_FILENAME, COL_TITLE_LANG1, COL_CONTENT_LANG1,
-        COL_TITLE_LANG2, COL_CONTENT_LANG2, COL_PERMALINK,
-        COL_LAYOUT, COL_EXTRA_METADATA,
-    ]
-    missing_cols = [c for c in required_cols if c not in pages_df.columns]
-    if missing_cols:
-        print(f"[WARN] pages sheet is missing column(s) {missing_cols} — skipping page generation")
-        return
 
     def clean(value) -> str:
         if pd.isna(value):
@@ -152,6 +166,34 @@ def build_pages_from_sheet(pages_df, config_df=None, base_dir: str = ".") -> Non
 
     def get_lang2_folder_name() -> str:
         return get_config_category_value(LANG2_ID_CATEGORY, DEFAULT_LANG2_FOLDER)
+
+    # Resolve the human-readable language names FIRST, since the pages
+    # sheet's own column headers depend on them.
+    lang1_name = get_config_category_value(LANG1_NAME_CATEGORY, DEFAULT_LANG1_NAME)
+    lang2_name = get_config_category_value(LANG2_NAME_CATEGORY, DEFAULT_LANG2_NAME)
+
+    COL_TITLE_LANG1 = f"title-in-{lang1_name}"
+    COL_CONTENT_LANG1 = f"content-in-{lang1_name}"
+    COL_TITLE_LANG2 = f"title-in-{lang2_name}"
+    COL_CONTENT_LANG2 = f"content-in-{lang2_name}"
+
+    print(f"[INFO] lang1 column names resolved to: {COL_TITLE_LANG1!r}, {COL_CONTENT_LANG1!r}")
+    print(f"[INFO] lang2 column names resolved to: {COL_TITLE_LANG2!r}, {COL_CONTENT_LANG2!r}")
+
+    required_cols = [
+        COL_FILENAME, COL_TITLE_LANG1, COL_CONTENT_LANG1,
+        COL_TITLE_LANG2, COL_CONTENT_LANG2, COL_PERMALINK,
+        COL_LAYOUT, COL_EXTRA_METADATA,
+    ]
+    missing_cols = [c for c in required_cols if c not in pages_df.columns]
+    if missing_cols:
+        print(
+            f"[WARN] pages sheet is missing column(s) {missing_cols} — "
+            f"skipping page generation. (Column names are derived from "
+            f"config's '{LANG1_NAME_CATEGORY}'/'{LANG2_NAME_CATEGORY}' "
+            f"values — double check those match your sheet's headers.)"
+        )
+        return
 
     def parse_extra_metadata(raw: str) -> dict:
         """Turn "key: value" lines (one or more, newline-separated) into a dict."""

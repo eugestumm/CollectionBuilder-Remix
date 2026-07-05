@@ -1,22 +1,13 @@
-translate_id,description,en,pt
+translate_id,description,en,pt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 nav-home,Navigation menu Home option,Home,Início
-nav-lexicon,Navigation menu Lexicon dropdown,Bajubá,Bajubá
-nav-explore-lexicon,Navigation menu Explore Lexicon option,Explore Lexicon,Explorar Léxico
-nav-glossary,Navigation menu Glossary page option,Glossary,Glossário
-nav-visualization,Navigation menu Visualization dropdown,Visualization,Visualização
-nav-graph-network-work,Navigation menu Graph Network by Work option,Graph Network by Work,Gráfico de Rede por Obra
-nav-pajuba-timeline,Navigation menu Pajubá documentation timeline option,Timeline of Pajubá Lexical Documentation Over Time,Linha do Tempo da Documentação do Pajubá
 nav-browse,Navigation menu Browse option,Browse,Explorar
-nav-subjects,Navigation menu Subjects option,Subjects,Categorias
-nav-locations,Navigation menu Locations option,Locations,Localizações
 nav-map,Navigation menu Map option,Map,Mapa
 nav-timeline,Navigation menu Timeline option,Timeline,Cronologia
-nav-tags,Navigation menu Tags option,Tags,Etiquetas
 nav-data,Navigation menu Data option,Data,Metadados
-nav-about,Navigation menu About dropdown,About,Sobre
-nav-about_project,Navigation menu About project option,About this project,Sobre este projeto
-nav-how,Navigation menu How to use option,How to use this project,Como usar este projeto
-nav-method,Navigation menu Method option,Method,Método
+nav-about,Navigation menu About,About,Sobre
+nav-subjects,Home top subjects card title,Top Subjects,Categorias principais
+nav-locations,Home top locations card title,Top Locations,Localizações principais
+nav-tags,Navigation menu Tags option,Tags,Etiquetas
 home-featured-image,Home featured image button,Featured Image,Foto principal
 home-description,Home description card title,Description,Descrição
 home-learn,Home learn more button,Learn More,Saiba mais
@@ -55,9 +46,9 @@ item-breadcrumb-browse,Navigation menu Browse option,Browse,Pesquisar
 item-view-full,Instructions underneath item image,Click to view full screen,Clique aqui para ver em tela cheia
 item-download,Download,Download,Baixar
 item-download-image,Item page image download button,Download Image,Baixar imagem
-item-pdf-render,Instructions for PDF not rendering on item page,The PDF is not rendering in your browser. Please use the button below to download the PDF.,O PDF não pode ser exibido em seu navegador. Utilize o botão abaixo para baixar o PDF. 
+item-pdf-render,Instructions for PDF not rendering on item page,The PDF is not rendering in your browser. Please use the button below to download the PDF.,O PDF não pode ser exibido em seu navegador. Utilize o botão abaixo para baixar o PDF.
 item-download-pdf,Item page pdf download button,Download PDF,Baixar PDF
-item-audio-support,Notification that browser does not support audio on item page,Your browser does not support the audio element. Please download the audio file.,Seu navegador não suporta o elemento de áudio. Por favor, baixe o arquivo de áudio.
+item-audio-support,Notification that browser does not support audio on item page,Your browser does not support the audio element. Please download the audio file.,Seu navegador não suporta o elemento de áudio. Por favor,baixe o arquivo de áudio.
 item-download-audio,Item page audio download button,Download Audio File,Baixar arquivo de áudio
 item-view-youtube,Item page youtube view button,View on Youtube,Ver no Youtube
 item-view-vimeo,Item page vimeo view button,View on Vimeo,Ver no Vimeo
@@ -111,7 +102,7 @@ search-site-search,Google CSE disclaimer on Search page (only appears if google-
 search-lunr-options,Lunr search options modal title on Search page,Lunr Search Options,Opções de pesquisa via Lunr
 search-options-modal-part-1,Search options description on Search page modal,"<p>These advanced options can be added to your query in the search box to refine your results:</p> <ul> <li>Search a specific field: use the field name, colon, then your query, e.g. <code>title:foo</code>, <code>date:1911</code>, <code>subject:tree</code>. In this collection you can use ","<p>Estas opções avançadas podem ser adicionadas a sua consulta no caixa de pesquisa para refinar seus resultados:</p> <ul> <li>Buscar um campo específico: use o nome do campo, dois pontos e depois sua consulta, e.g. <code>title:foo</code>, <code>date:1911</code>, <code>subject:tree</code>. Nesta coleção você pode usar "
 search-options-modal-part-2,Search options description on Search page modal,".</li> <li>Wildcards: add <code>*</code> to match any character(s), e.g. <code>foo*</code>, <code>*oo</code>. This is helpful for using a root to find words with all related endings.</li> <li>Fuzzy match: add <code>~</code> plus a number at the end of your query to specify a higher level of fuzziness in search, e.g. <code>foo~1</code>. This can help with misspellings.</li> <li>Boost term: add <code>^</code> plus a number to boost the relevance of a term in your query, e.g. <code>foo^10</code>. This can help reduce clutter of unrelated results if one of your terms is most important.</li>",".</li> <li>Comodines: agregue <code>*</code> para que coincida con cualquier carácter(s), e.g. <code>foo*</code>, <code>*oo</code>. Esto es útil para usar una raíz para encontrar palabras con todas las terminaciones relacionadas.</li> <li>Coincidencia aproximada: agregue <code>~</code> más un número al final de su consulta para especificar un nivel más alto de confusión en la búsqueda, e.g. <code>foo~1</code>. Esto puede ayudar con las faltas de ortografía.</li> <li>Impulsar término: agregue <code>^</code> más un número para aumentar la relevancia de un término en su consulta, e.g. <code>foo^10</code>. Esto puede ayudar a reducir el desorden de resultados no relacionados si uno de sus términos es el más importante.</li>"
-contents,About page table of contents card title,Contents,Conteúdo 
+contents,About page table of contents card title,Contents,Conteúdo
 tech,About page Tech heading,Tech,Tecnologia
 tech-heading,Technical card title,Technical Credits - CollectionBuilder,Créditos técnicos - CollectionBuilder
 tech-info,Technical card more information section title,More Information Available,Mais informação disponível
@@ -136,22 +127,10 @@ metadata-type,Type field in metadata,Type,Tipo
 metadata-format,Format field in metadata,Format,Formato
 metadata-rights,Rights field in metadata,Rights,Direitos
 metadata-rightsstatement,Rights Statement field in metadata,Rights Statement,Declaração de direitos
-metadata-illustrator,Illustrator field in metadata,Illustrator,Pessoa Ilustradora
-map-books-title,Title on book map page,Books,Livros
-map-books-description,Description on book map page,The points on this map represent the locations mentioned in the books in this collection.,Os pontos neste mapa representam os locais mencionados nos livros desta coleção.
-map-creators-title,Title on creators map page,Authors,Autores
-map-creators-description,Description on creators map page,The points on this map represent the locations where these books' authors live.,Os pontos neste mapa representam os locais onde vivem os autores destes livros.
-map-illustrators-title,Title on creators map page,Illustrators,Pessoas Ilustradoras
-map-illustrators-description,Description on creators map page,The points on this map represent the locations where these books' illustrators live.,Os pontos neste mapa representam os locais onde vivem os ilustradores destes livros.
-view-books,View books button on creator map page,View Books,Ver Livros
-metadata-find,Find at your library button for items,Find at Your Library,Encontre em sua biblioteca
+map-books-title,Title on map page
+map-books-description,Description on map page
 metadata-isbn,ISBN field in metadata,ISBN,ISBN
-metadata-lexile-level-en,Lexile Level field in metadata,Lexile Level English,Nível Lexile em Inglês
-metadata-lexile-level-es,Lexile Level field in metadata,Lexile Level Spanish,Nível Lexile em Espanhol
-metadata-atos-level-en,Atos Level field in metadata,Atos Level English,Nível Atos em Inglês
-metadata-atos-level-es,Atos Level field in metadata,Atos Level Spanish,Nível Atos em Espanhol
 metadata-ar-id,ar_id field in metadata,AR ID,AR ID
 metadata-age-group,age group field in metadata,Age Group,Grupo de Idade
 metadata-tags,Tags field in metadata,Tags,Etiquetas
 metadata-language,Language field in metadata,Language,Idioma
-metadata-words-featured,Pajuba Lexicon field in metadata,Featured Words,Palavras em Pajubá

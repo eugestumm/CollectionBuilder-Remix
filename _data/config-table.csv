@@ -1,8 +1,8 @@
 field,translate_id_table,lang
 title,metadata-title,en
-title-pt,metadata-title,pt
-date,metadata-date,en;pt
+title-es,metadata-title,es
+date,metadata-date,en;es
 description-en,metadata-description,en
-description-pt,metadata-description,pt
+description-es,metadata-description,es
 subject-en,metadata-subject,en
-subject-pt,metadata-subject,pt
+subject-es,metadata-subject,es

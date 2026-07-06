@@ -1,10 +1,10 @@
 field,lang,index,display
 title,en,true,true
-title-pt,pt,true,true
-date,en;pt,true,true
+title-es,es,true,true
+date,en;es,true,true
 description-en,en,true,true
-description-pt,pt,true,true
+description-es,es,true,true
 subject-en,en,true,true
-subject-pt,pt,true,true
+subject-es,es,true,true
 location-en,en,true,false
-location-pt,pt,true,false
+location-es,es,true,false

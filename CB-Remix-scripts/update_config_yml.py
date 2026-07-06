@@ -45,6 +45,24 @@ def update_config_yml(
     - A blank cell in the spreadsheet is skipped rather than clearing an
       existing value.
 
+    Some values also drive OTHER fields derived from them rather than
+    copied verbatim — see DERIVED_MAP below. Currently this covers
+    "lang2-id": that spreadsheet value doesn't just get written into
+    site_languages[1].lang_id, it also determines the folder/permalink/lang
+    for language 2's pages in the "defaults" block, e.g.:
+
+        defaults:
+        - scope:
+            path: 'pt'          # <- lang2-id
+          values:
+            permalink: /pt/:basename   # <- template built from lang2-id
+            lang: 'pt'          # <- lang2-id
+
+    If lang2-id changes (e.g. Portuguese -> Spanish, "pt" -> "es"), this
+    block needs to change too, or Jekyll keeps looking for pages under the
+    old language folder and serving them at the old permalink even though
+    site_languages now says the site is in the new language.
+
     Uses ruamel.yaml (round-trip mode) instead of PyYAML specifically
     because it preserves comments and key ordering, which a plain
     yaml.safe_load/yaml.dump cycle would otherwise strip out.
@@ -77,6 +95,24 @@ def update_config_yml(
         "site_languages[1].lang_site_title":        "title-lang2",
         "site_languages[1].lang_site_tagline":      "tagline-lang2",
         "site_languages[1].lang_site_description":  "description-lang2",
+    }
+
+    # ── category -> other yaml_paths driven by that same value ─────────
+    # Each entry is a list of (yaml_path, transform) pairs. `transform`
+    # takes the raw spreadsheet value and returns what should actually be
+    # written at that path (identity for a straight copy, or a small
+    # template for something like the permalink).
+    #
+    # These paths must already exist in _config.yml (create_missing=False)
+    # — this only ever *updates* the language-2 defaults entry, it doesn't
+    # create one from scratch, since the "pages" defaults entry after it
+    # also needs to exist and their relative order/shape matters.
+    DERIVED_MAP = {
+        "lang2-id": [
+            ("defaults[0].scope.path",   lambda v: v),
+            ("defaults[0].values.lang",  lambda v: v),
+            ("defaults[0].values.permalink", lambda v: f"/{v}/:basename"),
+        ],
     }
 
     path_segment_re = re.compile(r"^([\w-]+)(?:\[(\d+)\])?$")
@@ -166,6 +202,22 @@ def update_config_yml(
             updated.append(yaml_field_path)
         else:
             skipped_missing.append(yaml_field_path)
+
+    for category, derived_targets in DERIVED_MAP.items():
+        if category not in values_by_category:
+            continue
+
+        value = values_by_category[category]
+        if value == "":
+            skipped_blank.extend(path for path, _ in derived_targets)
+            continue
+
+        for yaml_field_path, transform in derived_targets:
+            derived_value = transform(value)
+            if set_yaml_path(config_data, yaml_field_path, derived_value, create_missing=False):
+                updated.append(yaml_field_path)
+            else:
+                skipped_missing.append(yaml_field_path)
 
     with open(yaml_path, "w", encoding="utf-8") as fh:
         yaml.dump(config_data, fh)

@@ -6,7 +6,7 @@ retrieving the spreadsheet and getting its data into memory / onto disk:
   1. Downloads a .ods (OpenDocument Spreadsheet) file from a public Google
      Sheets "publish to web" URL — done ONCE per run.
   2. Reads several sheets/tabs from that single downloaded file:
-       - "DO_NOT_TOUCH(Converter_Interface)" -> exported to _data/main-metadata.csv
+       - "main-metadata"                     -> exported to _data/main-metadata.csv
        - "nav-bar"                           -> exported to _data/config-nav.csv
        - "config-browse"                     -> exported to _data/config-browse.csv
        - "config-map"                        -> exported to _data/config-map.csv
@@ -112,7 +112,10 @@ except ImportError as exc:
 # ─────────────────────────────────────────────────────────────────────────────
 # CONFIGURATION
 # ─────────────────────────────────────────────────────────────────────────────
-ODS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4lOKlUnTG99YQ6c09QnwZ_bLxdqeIJhDRR5JQaDlgeQMFwUS2OGaWQ_3VyXIDKKPZAa3xYjTgbTLh/pub?output=ods"
+# The Google Sheets "publish to web" .ods link is no longer hardcoded here —
+# it's read at runtime from this file in the project root, so people can swap
+# spreadsheets without touching any code. See get_ods_url() below.
+LINK_FILE_NAME = "PASTE_YOUR_GOOGLE_SPREADSHEET_LINK_HERE.txt"
 OUTPUT_DIR = "_data"  # relative to cwd
 
 # Sheets that get written to disk as CSV: {sheet name in workbook -> (output
@@ -125,7 +128,7 @@ OUTPUT_DIR = "_data"  # relative to cwd
 # "config" sheet (to resolve language names/ids), so it's called with an
 # extra config_df argument the others don't take.
 EXPORT_SHEETS = {
-    "DO_NOT_TOUCH(Converter_Interface)": ("main-metadata.csv", export_metadata_csv),
+    "main-metadata":         ("main-metadata.csv",   export_metadata_csv),
     "nav-bar":               ("config-nav.csv",      export_navbar_csv),
     "config-browse":         ("config-browse.csv",   export_browse_csv),
     "config-map":            ("config-map.csv",      export_map_csv),
@@ -137,7 +140,14 @@ EXPORT_SHEETS = {
 
 # Sheet names that need config_df passed in alongside (output_path) — see
 # the NOTE above EXPORT_SHEETS.
-SHEETS_NEEDING_CONFIG = {"metadata-orchestrator", "config-table", "config-map", "config-search", "config-browse"}
+SHEETS_NEEDING_CONFIG = {
+    "main-metadata",
+    "metadata-orchestrator",
+    "config-table",
+    "config-map",
+    "config-search",
+    "config-browse",
+}
 
 # Sheets that are only kept in memory (as DataFrames) for later use — not
 # written to disk.
@@ -148,6 +158,51 @@ MEMORY_ONLY_SHEETS = ["pages", "config"]
 CONFIG_YML_PATH = "_config.yml"
 CONFIG_SHEET_NAME = "config"
 # ─────────────────────────────────────────────────────────────────────────────
+
+
+def get_ods_url(link_file_path: pathlib.Path) -> str:
+    """Read the Google Sheets "publish to web" .ods link out of
+    *link_file_path* (PASTE_YOUR_GOOGLE_SPREADSHEET_LINK_HERE.txt in the
+    project root), so switching spreadsheets is a matter of editing that
+    text file instead of this script.
+
+    Uses the first non-blank line in the file, in case the file also has
+    instructions/comments in it. Exits with a clear error message if the
+    file is missing, empty, or still contains placeholder text — rather
+    than silently trying (and failing) to download from a bad URL.
+    """
+    if not link_file_path.exists():
+        sys.exit(
+            f"[ERROR] Could not find {link_file_path.name} in the project root.\n"
+            f"        Create a file called '{LINK_FILE_NAME}' there and paste your\n"
+            f"        Google Sheet's 'publish to web' .ods link into it (File > Share\n"
+            f"        > Publish to web > Entire document > .ods > Publish, then copy\n"
+            f"        that resulting link)."
+        )
+
+    raw_text = link_file_path.read_text(encoding="utf-8")
+    url = next((line.strip() for line in raw_text.splitlines() if line.strip()), "")
+
+    if not url or "PASTE_YOUR" in url.upper():
+        sys.exit(
+            f"[ERROR] {link_file_path.name} doesn't contain a real link yet.\n"
+            f"        Paste your Google Sheet's 'publish to web' .ods link into "
+            f"that file."
+        )
+
+    if not url.lower().startswith("http"):
+        sys.exit(f"[ERROR] {link_file_path.name} doesn't look like a URL: {url!r}")
+
+    if "output=ods" not in url:
+        print(
+            f"[WARN] The link in {link_file_path.name} doesn't contain "
+            f"'output=ods' — make sure it's the 'publish to web' link with the "
+            f"format set to .ods (File > Share > Publish to web), not the "
+            f"regular 'Share' link, or the download below may fail or return "
+            f"the wrong file type."
+        )
+
+    return url
 
 
 def download_ods(url: str) -> pathlib.Path:
@@ -318,7 +373,8 @@ def main():
     output_dir = pathlib.Path.cwd() / OUTPUT_DIR
 
     # The spreadsheet is downloaded exactly once per run, right here.
-    ods_path = download_ods(ODS_URL)
+    ods_url = get_ods_url(pathlib.Path.cwd() / LINK_FILE_NAME)
+    ods_path = download_ods(ods_url)
     try:
         dataframes = load_all_sheets(ods_path, output_dir)
     finally:

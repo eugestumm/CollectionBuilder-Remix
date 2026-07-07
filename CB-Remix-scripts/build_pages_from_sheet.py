@@ -205,6 +205,34 @@ def build_pages_from_sheet(pages_df, config_df=None, base_dir: str = ".") -> Non
             key, _, val = line.partition(":")
             pairs[key.strip()] = val.strip()
         return pairs
+    
+    def parse_extra_metadata(raw: str) -> dict:
+        """Turn "key: value" lines into a dict, converting recognizable
+        literals (true/false, ints, floats) to real types so ruamel.yaml
+        emits them unquoted (e.g. `credits: true` instead of `credits: 'true'`).
+        """
+        def coerce(val: str):
+            low = val.lower()
+            if low in ("true", "false"):
+                return low == "true"
+            try:
+                return int(val)
+            except ValueError:
+                pass
+            try:
+                return float(val)
+            except ValueError:
+                pass
+            return val  # leave as string
+
+        pairs = {}
+        for line in raw.splitlines():
+            line = line.strip()
+            if not line or ":" not in line:
+                continue
+            key, _, val = line.partition(":")
+            pairs[key.strip()] = coerce(val.strip())
+        return pairs
 
     def write_markdown(folder: pathlib.Path, filename: str, front_matter: dict, body: str) -> None:
         folder.mkdir(parents=True, exist_ok=True)

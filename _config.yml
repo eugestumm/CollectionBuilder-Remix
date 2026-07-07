@@ -40,10 +40,16 @@ site_languages:
 - lang_id: en
   lang_display: English
 - lang_id: es
-  lang_display: Spanish
-  lang_site_title: Title in Spanish
-  lang_site_tagline: Tagline in Spanish
-  lang_site_description: "Description in SPanish"
+  lang_display: Español
+  lang_site_title: Archivo Digital de Español No Binario
+  lang_site_tagline: Una Compilación Gratuita y de Acceso Abierto de Recursos en
+    Español No Binario
+  lang_site_description: "El Archivo Digital de Español No Binario es un proyecto
+    de Humanidades Digitales que rastrea el surgimiento del español inclusivo de género
+    a través del período colonial, donde se sembraron las condiciones de posibilidad
+    para su creación, hasta llegar a la época moderna, donde las producciones culturales
+    que utilizan el español inclusivo de género son en sí mismas una forma de resistencia
+    a esta colonialidad."
 # Set paths, language ids, and permalinks for pages
 defaults:
 - scope:

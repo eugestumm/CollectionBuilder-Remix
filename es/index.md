@@ -1,5 +1,5 @@
 ---
-title: Início
+title: Inicio
 layout: home-infographic
 ---
 

@@ -1,5 +1,5 @@
 ---
-title: Busca no Site
+title: Búsqueda del Sitio
 layout: search
 ---
 

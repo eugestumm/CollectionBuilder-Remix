@@ -1,5 +1,5 @@
 ---
-title: Item da Coleção
+title: Ítem de la Colección
 layout: item
 ---
 

@@ -3,4 +3,4 @@ title: Explorar
 layout: browse
 ---
 
-## Explorar itens
+# Explorar Ítems

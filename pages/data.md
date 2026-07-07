@@ -4,9 +4,7 @@ layout: data
 permalink: /data.html
 ---
 
-## Collection Metadata
+# Collection Metadata
 
 The table below provides sorting and basic search of the collection contents. 
-Use the "CSV" or "Excel" button below to download the filtered metadata you see on the page in your preferred format. 
-Alternatively, click the "Download" button at the top right to view the full collection metadata in various export formats. 
-To access the full metadata of this collection on Google Spreadsheets, [click here](https://docs.google.com/spreadsheets/d/1VI-54jK7-DHtDxPZoDCLz4vNEMCfZdN7La-UCDktCiE/edit?usp=sharing).
+Use the "CSV" or "Excel" button below to download the filtered metadata you see on the page in your preferred format. Alternatively, you can find the full Google Spreadsheets version of the metadata here: [https://docs.google.com/spreadsheets/d/10ylY7YaNrx0YFQRBFAbMcQv7LNr5yixtRrTcWVvdqgk/edit?usp=sharing](https://docs.google.com/spreadsheets/d/10ylY7YaNrx0YFQRBFAbMcQv7LNr5yixtRrTcWVvdqgk/edit?usp=sharing)

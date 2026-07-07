@@ -1,50 +1,21 @@
 ---
 title: Sobre
 layout: about
+credits: true
 ---
 
-# Sobre este Projeto
+# Sobre Este Proyecto
 
-Este arquivo digital faz parte da tese de doutorado de [Euge Stumm](https://eugestumm.github.io) sobre as construções sexo-genéricas dissidente de linguagem na América Latina. O desenvolvimento dos dados do corpus foi supervisionado pelo Professor Steven Butterman e a implementação deste site foi supervisionada pela Professora Susanna Allés-Torrent. Atualmente, estamos trabalhando em uma versão bilíngue (em inglês e português) deste projeto, prevista para a primavera de 2026.
+El Archivo Digital de Español No Binario fue creado por [Euge Stumm](https://eugestumm.github.io/) y [Ben Papadopoulos](https://www.benpapadopoulos.com/). La primera versión de este proyecto tuvo su origen en el <a href="https://sections.lasaweb.org/sections/sexualities-studies/show.php?type=news&id=692&pg=2">Taller sobre Alianzas: Lenguaje Inclusivo de Género, Historia y la Lucha contra el Colonialismo</a>, organizado por la sección de [Estudios de Sexualidades](https://sections.lasaweb.org/sections/sexualities-studies) de la [Asociación de Estudios Latinoamericanos](https://lasaweb.org/en). Este proyecto de [Humanidades Digitales](https://en.wikipedia.org/wiki/Digital_humanities) ofrece a quienes lo visitan visualizaciones temporales y espaciales interactivas de producciones culturales de habla hispana que emplean formas inclusivas de género, así como sus fundamentos teóricos centrados en el colonialismo y otras formas de opresión relacionadas, desde la época colonial hasta la actualidad. Nuestros recursos principales incluyen documentos coloniales sobre lenguaje, arte, fanzines, poesía, tesis, manifiestos, cuentos, novelas y videos. Puede explorar el Archivo de forma [espacial](https://eugestumm.github.io/gender-inclusive-spanish-digital-archive/es/map.html) o [temporal](https://eugestumm.github.io/gender-inclusive-spanish-digital-archive/es/timeline.html), y encontrará una lista completa de los datos con sus descripciones [aquí](https://eugestumm.github.io/gender-inclusive-spanish-digital-archive/es/data.html).
 
-Este projeto tem como objetivo fornecer a pesquisadores e ao público em geral:
-* 1\) um ponto de partida para compreender e aprender o Pajubá
-* 2\) uma visualização histórica e geográfica da língua, traçando suas diferenças e semelhanças no espaço e no tempo
-* 3\) um recurso em inglês para pesquisa acadêmica sobre o criptoleto
 
-## O que é o Pajubá
+## Sobre lxs Autorxs
 
-O Pajubá é um criptoleto (uma língua secreta) originalmente desenvolvido por travestis e mulheres trans brasileiras, e posteriormente adotado por uma comunidade mais ampla de dissidentes de gênero e sexualidade no Brasil. Como destaca [Gabriela Araujo](https://repositorio.ufu.br/handle/123456789/21850), o vocabulário do Pajubá inclui influência significativa de línguas da África Ocidental (como o iorubá) e de línguas europeias (como o italiano e o francês). O uso do Pajubá serve tanto como forma de expressão cultural quanto como meio de proteção, permitindo que seus falantes se comuniquem com segurança em ambientes hostis e sinalizando pertencimento e reconhecimento mútuo.
+<a href="https://eugestumm.github.io/">Euge Stumm</a> (elle/elu) es Dean's Fellow y estudiante de doctorado en Estudios Literarios, Culturales y Lingüísticos en el Departamento de Lenguas y Literaturas Modernas de la Universidad de Miami. Su investigación examina cómo les disidentes de género y sexualidad en América Latina construyen el lenguaje para expresar sus experiencias. Su corpus de investigación se centra en producciones culturales que utilizan lenguaje inclusivo y español no binario en Argentina, y en el Pajubá, un criptolecto desarrollado originalmente por trabajadoras sexuales travestis en Brasil. Actualmente, Euge desarrolla un Archivo Digital de Pajubá de acceso abierto, que reúne múltiples recursos, diccionarios y trabajos académicos sobre este criptolecto.
 
-## Como Usar este Arquivo
+[Ben Papadopoulos](https://www.benpapadopoulos.com/) (él/elle) se graduó recientemente del doctorado en Lenguas y Literaturas Hispánicas de la Universidad de California, Berkeley. Sus principales intereses son la sociolingüística y la sociología crítica. Su investigación gira en torno al lenguaje inclusivo de género y plantea argumentos sociológicos sobre el lenguaje como categoría de poder y sobre el derecho de las personas queer y trans a tener y usar formas adecuadas de autoidentificación. En este sentido, es el fundador del <a href="https://www.genderinlanguage.com/">Gender in Language Project</a>, que busca ofrecer gramáticas de género en la mayor cantidad de idiomas posible.
 
-* Para Pesquisadores
-  * Navegue por [região](https://eugestumm.github.io/BajubaDigitalArchive/locations.html), [período histórico](https://eugestumm.github.io/BajubaDigitalArchive/timeline.html), [autor e gênero](https://eugestumm.github.io/BajubaDigitalArchive/subjects.html) ou [léxico](https://eugestumm.github.io/BajubaDigitalArchive/glossary.html)
-  * Baixe os [metadados completos](https://eugestumm.github.io/BajubaDigitalArchive/data.html) para análise
-  * Acesse a [documentação metodológica completa](https://eugestumm.github.io/BajubaDigitalArchive/method.html)
-  * Consulte fontes primárias e [secundárias](https://eugestumm.github.io/BajubaDigitalArchive/browse.html#academic%20work)
 
-* Para Estudantes e Público em Geral
-  * Explore um [mapa interativo](https://eugestumm.github.io/BajubaDigitalArchive/map.html) com variações regionais
-  * Ouça [amostras de áudio](https://eugestumm.github.io/BajubaDigitalArchive/browse.html#video) (com traduções e/ou transcrições, quando disponíveis)
-  * Leia documentos históricos e amostras do Pajubá
+## Sobre Este Sitio Web
 
-## Como este Projeto Foi Desenvolvido
-
-Para mais informações sobre coleta de dados, codificação e procedimentos metodológicos, consulte a seção "[Método](https://eugestumm.github.io/BajubaDigitalArchive/method.html)."
-
-## Financiamento e Sustentabilidade
-
-Este projeto recebeu uma bolsa de $1.000 dólares da Digital Humanities Fellowship da [Universidade de Miami](https://dh.miami.edu). Fundamentado em uma filosofia de [Computação Mínima](https://go-dh.github.io/mincomp/about), o site é hospedado como uma página estática Jekyll por meio do GitHub Pages, e o banco de dados é hospedado pelo Google Planilhas.
-
-## Agradecimentos
-
-Expressamos profunda gratidão aos falantes do Pajubá, ativistas LGBTQIAPN+ e organizações comunitárias que desenvolveram, preservaram e compartilharam expressões culturais em Pajubá. Agradecemos também ao [Centro de Humanidades](https://humanities.as.miami.edu) e ao setor de [Humanidades Digitais](https://dh.miami.edu/dh-projects/index.html) da Universidade de Miami pelo financiamento deste projeto.
-
-## Contato
-
-Para colaborações, dúvidas e assistência técnica, entre em contato com Euge Stumm: [estumm@miami.edu](mailto:estumm@miami.edu).
-
-## O Arquivo Digital do Pajubá Utiliza o Framework CollectionBuilder
-
-Agradecemos a [@gbventura](https://gbventura.github.io/pinatabooks/) por sua implementação bilíngue do CollectionBuilder. Esta edição é baseada em seu código.
+Este sitio fue generado con [CollectionBuilder-Remix](https://github.com/eugestumm/CollectionBuilder-Remix), una plantilla para crear sitios web de exhibiciones digitales sencillas cargando los metadatos de la colección directamente desde Google Spreadsheets.

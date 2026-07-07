@@ -1,10 +1,10 @@
 ---
-title: Localizações
+title: Ubicaciones
 layout: cloud
 cloud-fields: site.data.theme.locations-fields
 ---
 
-## Explorar Localizações
+# Explorar Ubicaciones
 
-Use esta visualização de nuvem de palavras para navegar pelas locais de publicação das obras.
-O tamanho das palavras é determinado pela frequência e todas as palavras têm links para uma pesquisa correspondente na coleção.
+Utilice esta visualización de nube de palabras para explorar las ubicaciones.
+El tamaño de cada palabra está determinado por su frecuencia, y todas las palabras enlazan a una búsqueda correspondiente en la colección.

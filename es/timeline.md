@@ -1,6 +1,6 @@
 ---
-title: Linha do Tempo
+title: Línea de Tiempo
 layout: timeline
 ---
 
-## Linha do Tempo
+# Línea de Tiempo

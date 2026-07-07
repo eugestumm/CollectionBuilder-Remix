@@ -1,4 +1,5 @@
 ---
+title: Mapa
 layout: map
 ---
 

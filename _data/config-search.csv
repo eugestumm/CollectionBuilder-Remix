@@ -8,3 +8,4 @@ subject-en,en,true,true
 subject-es,es,true,true
 location-en,en,true,false
 location-es,es,true,false
+gender-strategy,en;es,true,true

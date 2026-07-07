@@ -57,6 +57,9 @@
             } else if (item.format.includes('pdf')) {
                 itemDisplay = '<div class="ratio ratio-4x3"><object title="PDF file of ' + item.title + '" data="' + item.filename + '" type="application/pdf" width="100%"><p>{% include translate.html id="item-pdf-render" default="The PDF is not rendering in your browser. Please use the button below to download the PDF." %}</p></object></div>';
                 itemDownload = '<a href="' + item.filename + '" target="_blank" rel="noopener" class="btn btn-outline-primary" title="Object download">{% include translate.html id="item-download-pdf" default="Download PDF" %}</a>';
+            } else if (item.format.includes('html') || item.format.includes('webpage')) {
+                itemDisplay = '<div class="ratio ratio-16x9"><iframe title="webpage embed of ' + item.title + '" src="' + item.filename + '" allowfullscreen loading="lazy"></iframe></div>';
+                itemDownload = '<a href="' + item.filename + '" target="_blank" rel="noopener" class="btn btn-outline-primary" title="Object link">{% include translate.html id="item-view-webpage" default="Open Webpage" %}</a>';
             } else if (item.format.includes('audio')) {
                 itemDisplay = '<audio controls class="w-100"><source src="' + item.filename + '">{% include translate.html id="item-audio-support" default="Your browser does not support the audio element. Please download the audio file." %}</audio>';
                 itemDownload = '<a href="' + item.filename + '" target="_blank" rel="noopener" class="btn btn-outline-primary" title="Object download">{% include translate.html id="item-download" default="Download" %} ' + item.format.split("/").pop().toUpperCase() + '</a>';
@@ -167,6 +170,9 @@
                 var compoundIcon, compoundThumb;
                 if (compoundFormat.includes('image')) {
                     compoundIcon = compoundLink;
+                } else if (item.format.includes('html') || item.format.includes('webpage')) {
+                    itemDisplay = '<div class="ratio ratio-16x9"><iframe title="webpage embed of ' + item.title + '" src="' + item.filename + '" allowfullscreen loading="lazy"></iframe></div>';
+                    itemDownload = '<a href="' + item.filename + '" target="_blank" rel="noopener" class="btn btn-outline-primary" title="Object link">{% include translate.html id="item-view-webpage" default="Open Webpage" %}</a>';
                 } else if (compoundFormat.includes('pdf')) {
                     compoundIcon = 'icon-pdf';
                 } else if (compoundFormat.includes('audio')) {
@@ -174,7 +180,9 @@
                 } else if (compoundFormat.includes('video')) {
                     compoundIcon = 'icon-video';
                 } else if (compoundFormat.includes('record')) {
-                    compoundIcon = 'icon-record';
+                    compoundIcon = 'icon-record'; 
+                } else if (compoundFormat.includes('html') || compoundFormat.includes('webpage')) {
+                   compoundIcon = 'icon-website'; // swap for whatever icon id exists in your icon set, or fall back to 'icon-default'
                 } else {
                     compoundIcon = 'icon-default';
                 }
@@ -369,6 +377,17 @@
                         <p>
                             ${itemImage}
                         </p>
+                        <div class="mt-2">
+                            ${itemLink}
+                        </div>
+                    </div>
+                </div>
+            `
+        } else if (record.format.includes('html') || record.format.includes('webpage')) {
+            itemContent = `
+                <div class="card mb-4 text-center">
+                    <div class="card-body">
+                        ${itemImage}
                         <div class="mt-2">
                             ${itemLink}
                         </div>

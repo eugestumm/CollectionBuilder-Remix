@@ -17,8 +17,7 @@
     
 {%- endcomment -%}
 
-{%- assign object-pool = site.data[site.metadata] | where_exp: "item", "item.objectid" -%}
-{%- assign image-items = object-pool | where_exp: "item", 'item.format contains "image" or item.image_thumb' -%}
+{%- assign image-items = site.data[site.metadata ] | where_exp: 'item', 'item.objectid' | where_exp: "item","item.format contains 'image' or item.image_thumb" -%}
 {%- assign youtube-items = site.data[site.metadata ] | where_exp: 'item', 'item.objectid' | where_exp: "item","item.youtubeid" -%}
 {%- if youtube-items -%}{%- assign carousel-items = image-items | concat: youtube-items -%}{%- else -%}{%- assign carousel-items = image-items -%}{% endif %}
 

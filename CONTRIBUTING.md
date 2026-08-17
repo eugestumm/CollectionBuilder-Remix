@@ -1,3 +1,7 @@
+# How to Contribute to CollectionBuilder-Remix
+
+Please, feel free to submit an issue in this repository or directly contact me at [estumm@miami.edu](mailto:estumm@miami.edu).
+
 # How to Contribute to CollectionBuilder
 
 Thank you for contributing to CollectionBuilder!

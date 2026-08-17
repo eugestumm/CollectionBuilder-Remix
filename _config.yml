@@ -12,27 +12,22 @@
 url: https://eugestumm.github.io
 # baseurl is path to location on the domain if necessary e.g. /digital/hjccc
 # on GitHub Pages it is your github repository's name prefixed with a /
-baseurl: /gender-inclusive-spanish-digital-archive
+baseurl: /CollectionBuilder-Remix
 # location of code, the full url to your github repository
-source-code: 
-  https://github.com/eugestumm/gender-inclusive-spanish-digital-archive
+source-code: https://github.com/eugestumm/CollectionBuilder-Remix
 
 ##########
 # SITE SETTINGS
 #
 # title of site appears in banner
-title: Gender-Inclusive Spanish Digital Archive
+title: 'CollectionBuilder-Remix: Collection Sample'
 
 # tagline, a short phrase that will appear throughout the site in the top banner
-tagline: A Free and Open-Access Compilation of Resources in Gender Inclusive 
-  Spanish
+tagline: Based on Gender Inclusive Spanish Digital Archive
 # description appears in meta tags and other locations
 # this description might appear in search result lists, keep around 160 characters max
-description: "The Gender-Inclusive Spanish Digital Archive is Digital Humanities project
-  tracing the emergence of gender-inclusive Spanish through the colonial period, where
-  condition of possibility of its creation was planted, and into modern times, where
-  cultural productions that use gender-inclusive Spanish are themselves a form of
-  resistence to this coloniality."
+description: "This collection is a pedagogical sample based on the Gender-Inclusive
+  Spanish Digital Archive to help users to familiarize with the functions of CollectionBuilder-Remix."
 # creator of the digital collection, to appear in meta tags; we typically use our GitHub usernames but feel free to just use your name
 author: Euge Stumm
 
@@ -40,22 +35,13 @@ author: Euge Stumm
 site_languages:
 - lang_id: 'en'
   lang_display: 'English'
-<<<<<<< HEAD
 - lang_id: 'es'
   lang_display: 'Español'
-=======
-- lang_id: es
-  lang_display: Español
->>>>>>> 581c380081630ea0357d0203fec39bd71c42098e
-  lang_site_title: Archivo Digital de Español No Binario
-  lang_site_tagline: Una Compilación Gratuita y de Acceso Abierto de Recursos en
-    Español No Binario
-  lang_site_description: "El Archivo Digital de Español No Binario es un proyecto
-    de Humanidades Digitales que rastrea el surgimiento del español inclusivo de género
-    a través del período colonial, donde se sembraron las condiciones de posibilidad
-    para su creación, hasta llegar a la época moderna, donde las producciones culturales
-    que utilizan el español inclusivo de género son en sí mismas una forma de resistencia
-    a esta colonialidad."
+  lang_site_title: 'CollectionBuilder-Remix: Colección de Demostración'
+  lang_site_tagline: Basado en el Archivo Digital de Español No Binario
+  lang_site_description: "Esta colección es una demonstración pedagógica basada en
+    el Archivo Digital de Español No Binario, diseñada para ayudar a les usuaries
+    a familiarizarse con las funciones de CollectionBuilder-Remix."
 # Set paths, language ids, and permalinks for pages
 defaults:
 - scope:

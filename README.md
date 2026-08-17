@@ -24,7 +24,7 @@ No Jekyll installation, no command line, and no local software are required to r
 5. **Run the "Sync content from Spreadsheet" workflow** under the repository's **Actions** tab. This pulls your metadata in and generates the site's data files.
 6. **Enable GitHub Pages** under **Settings → Pages** (source: `main` branch, `/root` folder).
 
-Full step-by-step instructions, screenshots, and troubleshooting: [`docs/collectionbuilder-remix-walkthrough.md`](docs/collectionbuilder-remix-walkthrough.md).
+Full step-by-step instructions, screenshots, and troubleshooting: [https://github.com/eugestumm/CollectionBuilder-Remix/wiki/1.-Home](https://github.com/eugestumm/CollectionBuilder-Remix/wiki/1.-Home).
 
 **Keeping your site updated:** editing the spreadsheet alone does not update your live site. Every time you add or change metadata, re-run **Sync content from Spreadsheet** from the Actions tab to publish those changes.
 

@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """
-This is the entry point you actually run. It's responsible only for
-retrieving the spreadsheet and getting its data into memory / onto disk:
+This is the single entry point for syncing site content from the Google
+Sheet — used both for local development AND by the GitHub Actions workflow.
+It's responsible for retrieving the spreadsheet and getting its data into
+memory / onto disk:
 
   1. Downloads a .ods (OpenDocument Spreadsheet) file from a public Google
      Sheets "publish to web" URL — done ONCE per run.
@@ -16,6 +18,7 @@ retrieving the spreadsheet and getting its data into memory / onto disk:
        - "translation"                       -> exported to _data/config-translation.csv
        - "pages"                             -> kept in memory only
        - "config"                            -> kept in memory only
+       - "config-theme"                             -> kept in memory only
   3. Hands each sheet's data off to a dedicated script in CB-Remix-scripts/,
      each doing exactly one job:
        - CB-Remix-scripts/export_metadata_csv.py               -> cleans + writes
@@ -38,17 +41,45 @@ retrieving the spreadsheet and getting its data into memory / onto disk:
        - CB-Remix-scripts/export_translation_csv.py            -> cleans + writes
          the translation sheet to _data/config-translation.csv
        - CB-Remix-scripts/update_config_yml.py                 -> patches _config.yml
+       - CB-Remix-scripts/export_theme.py                  -> patches
+         _data/_theme.yml from the "config-theme" sheet (also needs the "config"
+         sheet, to resolve "-in-<language name>" tokens in fields like
+         subjects-fields/locations-fields/metadata-export-fields/
+         metadata-facets-fields — see that script's docstring)
+       - CB-Remix-scripts/update_home_infographic.py           -> patches
+         _includes/home-infographic.html so its bilingual
+         featured-terms "field=" attributes point at the CURRENT
+         lang1-id/lang2-id from the "config" sheet, instead of whatever
+         language codes happened to be hardcoded in that file before
+         (see that script's docstring)
        - CB-Remix-scripts/build_pages_from_sheet.py            -> writes markdown pages
+  4. Decides whether to launch `jekyll serve`:
+       - Locally: yes, by default, so you get a live dev server.
+       - In GitHub Actions: no, automatically. GitHub Actions sets the
+         GITHUB_ACTIONS=true environment variable on every runner, so this
+         script detects that and skips the (blocking) dev server — GitHub
+         Pages builds the site itself from the synced files. See
+         should_serve_jekyll() below.
+       - Either behavior can also be forced manually with --serve /
+         --no-serve, e.g. if you want to test the CI code path locally.
 
 All of the "what do we do with this data" logic lives in those sibling
 scripts instead, so each can be edited/iterated on independently of this
 retrieval script and of each other.
 
+Because this one script now covers both local dev and CI, there's no
+second copy to keep in sync by hand — point the GitHub Actions workflow
+at this same file (with no extra flags needed; it auto-detects CI).
+
 Dependencies (install once):
     pip install requests pandas odfpy ruamel.yaml
 
 Usage:
-    python download_csv.py
+    python run_updates.py               # syncs data, then launches jekyll serve
+                                         # (auto-skipped when GITHUB_ACTIONS=true)
+    python run_updates.py --no-serve    # force-skip jekyll serve (e.g. to test
+                                         # the CI path locally)
+    python run_updates.py --serve       # force jekyll serve even under CI env vars
 """
 
 import os
@@ -82,6 +113,8 @@ _SCRIPTS_DIR = pathlib.Path(__file__).resolve().parent / "CB-Remix-scripts"
 sys.path.insert(0, str(_SCRIPTS_DIR))
 try:
     from update_config_yml import update_config_yml
+    from export_theme import export_theme
+    from update_home_infographic import update_home_infographic
     from build_pages_from_sheet import build_pages_from_sheet
     from export_metadata_csv import export_metadata_csv
     from export_navbar_csv import export_navbar_csv
@@ -98,6 +131,8 @@ except ImportError as exc:
         f"        Make sure the following exist next to this script, inside\n"
         f"        CB-Remix-scripts/:\n"
         f"          update_config_yml.py\n"
+        f"          export_theme.py\n"
+        f"          update_home_infographic.py\n"
         f"          build_pages_from_sheet.py\n"
         f"          export_metadata_csv.py\n"
         f"          export_navbar_csv.py\n"
@@ -112,9 +147,11 @@ except ImportError as exc:
 # ─────────────────────────────────────────────────────────────────────────────
 # CONFIGURATION
 # ─────────────────────────────────────────────────────────────────────────────
-# The Google Sheets "publish to web" .ods link is no longer hardcoded here —
-# it's read at runtime from this file in the project root, so people can swap
-# spreadsheets without touching any code. See get_ods_url() below.
+# The Google Sheets "publish to web" .ods link is read at runtime from this
+# file in the project root, so people (and CI) can swap spreadsheets without
+# touching any code. See get_ods_url() below. Since GitHub Actions checks
+# out the full repo, this file needs to be committed to the repo (with a
+# real link in it, not the placeholder) for the workflow to find it.
 LINK_FILE_NAME = "PASTE_YOUR_GOOGLE_SPREADSHEET_LINK_HERE.txt"
 OUTPUT_DIR = "_data"  # relative to cwd
 
@@ -123,10 +160,10 @@ OUTPUT_DIR = "_data"  # relative to cwd
 # file in CB-Remix-scripts/ and knows that one sheet's specific cleanup
 # rules (which column is the phantom-row key, etc.) — see the imports above.
 #
-# NOTE: export_metadata_orchestrator_csv is special-cased in
-# load_all_sheets() below — it's the one exporter that also needs the
-# "config" sheet (to resolve language names/ids), so it's called with an
-# extra config_df argument the others don't take.
+# NOTE: export_metadata_orchestrator_csv (and the others in
+# SHEETS_NEEDING_CONFIG below) are special-cased in load_all_sheets() —
+# they also need the "config" sheet (e.g. to resolve language names/ids),
+# so they're called with an extra config_df argument the others don't take.
 EXPORT_SHEETS = {
     "main-metadata":         ("main-metadata.csv",   export_metadata_csv),
     "nav-bar":               ("config-nav.csv",      export_navbar_csv),
@@ -151,13 +188,50 @@ SHEETS_NEEDING_CONFIG = {
 
 # Sheets that are only kept in memory (as DataFrames) for later use — not
 # written to disk.
-MEMORY_ONLY_SHEETS = ["pages", "config"]
+MEMORY_ONLY_SHEETS = ["pages", "config", "config-theme"]
 
 # _config.yml gets its fields patched from the "config" sheet, whose columns
 # are named as below (case-insensitive match against these).
 CONFIG_YML_PATH = "_config.yml"
 CONFIG_SHEET_NAME = "config"
+
+# _data/_theme.yml gets its fields patched from the "config-theme" sheet. Some of
+# those fields (subjects-fields, locations-fields, metadata-export-fields,
+# metadata-facets-fields) use "-in-<language name>" tokens that need the
+# "config" sheet's lang1/lang2/lang1-id/lang2-id to resolve — see
+# export_theme.py's docstring.
+THEME_YML_PATH = "_data/theme.yml"
+THEME_SHEET_NAME = "config-theme"
+
+# _layouts/home-infographic.html has hardcoded bilingual
+# featured-terms "field=" attributes (e.g. "subject-en;subject-pt") that
+# need to track the "config" sheet's current lang1-id/lang2-id — see
+# update_home_infographic.py's docstring.
+HOME_INFOGRAPHIC_PATH = "_layouts/home-infographic.html"
+
+# Environment variable GitHub Actions sets to "true" on every runner it
+# manages. Used by should_serve_jekyll() below to auto-detect CI.
+GITHUB_ACTIONS_ENV_VAR = "GITHUB_ACTIONS"
 # ─────────────────────────────────────────────────────────────────────────────
+
+
+def should_serve_jekyll(cli_serve: bool, cli_no_serve: bool) -> bool:
+    """Decide whether to launch `jekyll serve` after syncing.
+
+    Priority order:
+      1. Explicit --serve / --no-serve on the command line always wins
+         (lets you force either behavior, e.g. testing the CI path locally).
+      2. Otherwise, auto-detect: skip if GITHUB_ACTIONS=true is set in the
+         environment (which GitHub Actions sets on every runner it manages),
+         since GitHub Pages builds the site itself there and a blocking dev
+         server would just hang the job.
+      3. Otherwise (plain local run), serve by default.
+    """
+    if cli_serve:
+        return True
+    if cli_no_serve:
+        return False
+    return os.environ.get(GITHUB_ACTIONS_ENV_VAR, "").lower() != "true"
 
 
 def get_ods_url(link_file_path: pathlib.Path) -> str:
@@ -177,7 +251,8 @@ def get_ods_url(link_file_path: pathlib.Path) -> str:
             f"        Create a file called '{LINK_FILE_NAME}' there and paste your\n"
             f"        Google Sheet's 'publish to web' .ods link into it (File > Share\n"
             f"        > Publish to web > Entire document > .ods > Publish, then copy\n"
-            f"        that resulting link)."
+            f"        that resulting link). Make sure it's committed to the repo so\n"
+            f"        CI can find it too."
         )
 
     raw_text = link_file_path.read_text(encoding="utf-8")
@@ -308,7 +383,7 @@ def read_sheet(ods_path: pathlib.Path, sheet_name: str) -> pd.DataFrame:
 
 def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """Apply the generic cleanup rule shared by the memory-only sheets
-    (pages, config): blank out literal "0" everywhere.
+    (pages, config, config-theme): blank out literal "0" everywhere.
 
     No column in these sheets legitimately contains a literal 0 — every
     occurrence comes from formulas resolving blank source cells to 0.
@@ -332,12 +407,18 @@ def load_all_sheets(ods_path: pathlib.Path, output_dir: pathlib.Path) -> dict:
       in the same process.
 
     NOTE: "config" (normally just one of MEMORY_ONLY_SHEETS) is loaded
-    FIRST, ahead of the EXPORT_SHEETS loop, because
-    export_metadata_orchestrator_csv needs it already in hand — it
-    resolves the sheet's language names/ids from config_df to translate
-    the "metadata-orchestrator" sheet's dynamic "field" values (e.g.
-    "title-in-English") into the literal field names Jekyll expects (e.g.
-    "title"). See that script's docstring for the full explanation.
+    FIRST, ahead of the EXPORT_SHEETS loop, because several exporters (see
+    SHEETS_NEEDING_CONFIG) need it already in hand — e.g.
+    export_metadata_orchestrator_csv resolves the sheet's language
+    names/ids from config_df to translate the "metadata-orchestrator"
+    sheet's dynamic "field" values (e.g. "title-in-English") into the
+    literal field names Jekyll expects (e.g. "title"). See that script's
+    docstring for the full explanation.
+
+    "config-theme" is also a memory-only sheet (see MEMORY_ONLY_SHEETS) — it
+    doesn't need to be loaded early like "config" does, since
+    export_theme() is only called later in main(), after
+    load_all_sheets() has already returned.
 
     Returns a dict of {sheet_name: DataFrame} covering all loaded sheets.
     """
@@ -370,6 +451,23 @@ def load_all_sheets(ods_path: pathlib.Path, output_dir: pathlib.Path) -> dict:
 
 
 def main():
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Sync site content from the Google Sheet.")
+    serve_group = parser.add_mutually_exclusive_group()
+    serve_group.add_argument(
+        "--serve",
+        action="store_true",
+        help="Force-launch 'jekyll serve' after syncing, even under CI env vars.",
+    )
+    serve_group.add_argument(
+        "--no-serve",
+        action="store_true",
+        help="Force-skip 'jekyll serve' after syncing, even outside CI "
+             "(e.g. to test the GitHub Actions code path locally).",
+    )
+    args = parser.parse_args()
+
     output_dir = pathlib.Path.cwd() / OUTPUT_DIR
 
     # The spreadsheet is downloaded exactly once per run, right here.
@@ -383,7 +481,24 @@ def main():
     # From here on, everything works off the in-memory DataFrames above —
     # no further contact with the spreadsheet this run.
     update_config_yml(pathlib.Path.cwd() / CONFIG_YML_PATH, dataframes[CONFIG_SHEET_NAME])
+    export_theme(
+        pathlib.Path.cwd() / THEME_YML_PATH,
+        dataframes[THEME_SHEET_NAME],
+        dataframes[CONFIG_SHEET_NAME],
+    )
+    update_home_infographic(
+        pathlib.Path.cwd() / HOME_INFOGRAPHIC_PATH,
+        dataframes[CONFIG_SHEET_NAME],
+    )
     build_pages_from_sheet(dataframes["pages"], dataframes[CONFIG_SHEET_NAME], base_dir=pathlib.Path.cwd())
+
+    if not should_serve_jekyll(args.serve, args.no_serve):
+        print(
+            "[INFO] Sync complete. Skipping 'jekyll serve' "
+            f"({'--no-serve given' if args.no_serve else 'GITHUB_ACTIONS env var detected'}); "
+            "GitHub Pages will build the site itself."
+        )
+        return
 
     print("[INFO] Starting Jekyll server...")
     os.system("jekyll serve")

@@ -40,8 +40,13 @@ author: Euge Stumm
 site_languages:
 - lang_id: 'en'
   lang_display: 'English'
+<<<<<<< HEAD
 - lang_id: 'es'
   lang_display: 'Español'
+=======
+- lang_id: es
+  lang_display: Español
+>>>>>>> 581c380081630ea0357d0203fec39bd71c42098e
   lang_site_title: Archivo Digital de Español No Binario
   lang_site_tagline: Una Compilación Gratuita y de Acceso Abierto de Recursos en
     Español No Binario

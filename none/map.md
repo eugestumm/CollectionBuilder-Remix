@@ -1,6 +1,0 @@
----
-title: Mapa
-layout: map
----
-
-

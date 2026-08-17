@@ -7,7 +7,7 @@ credits: true
 
 # About This Project
 
-This is a pedagogical sample to demonstrate the capabilities of CollectionBuilder-Remix, created by [Euge Stumm](https://eugestumm.github.io/) under the supervision of Dr. [Susanna Allés-Torrent](https://susannalles.com/) and sponsored by the University of Miami's Digital Humanities Fellowship during the Summer/2026. This demonstrative collection features a selected sample from [The Gender-Inclusive Spanish Digital Archive](https://eugestumm.github.io/gender-inclusive-spanish-digital-archive/), originally constructed by [Euge Stumm](https://eugestumm.github.io/) and [Ben Papadopoulos](https://www.benpapadopoulos.com/). 
+This is a pedagogical sample to demonstrate the capabilities of CollectionBuilder-Remix, created by [Euge Stumm](https://eugestumm.github.io/) under the supervision of [Dr. Susanna Allés-Torrent](https://susannalles.com/) and sponsored by the University of Miami's Digital Humanities Fellowship during the Summer/2026. This demonstrative collection features a selected sample from [The Gender-Inclusive Spanish Digital Archive](https://eugestumm.github.io/gender-inclusive-spanish-digital-archive/), originally constructed by [Euge Stumm](https://eugestumm.github.io/) and [Ben Papadopoulos](https://www.benpapadopoulos.com/). 
 
 ## About The Authors
 

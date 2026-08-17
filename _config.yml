@@ -26,8 +26,11 @@ title: 'CollectionBuilder-Remix: Collection Sample'
 tagline: Based on Gender Inclusive Spanish Digital Archive
 # description appears in meta tags and other locations
 # this description might appear in search result lists, keep around 160 characters max
-description: "This collection is a pedagogical sample based on the Gender-Inclusive
-  Spanish Digital Archive to help users to familiarize with the functions of CollectionBuilder-Remix."
+description: "This collection is a pedagogical sample based on the <a href=\"https://eugestumm.github.io/gender-inclusive-spanish-digital-archive/\"\
+  >Gender-Inclusive Spanish Digital Archive</a> to help users familiarize themselves
+  with the functions of CollectionBuilder-Remix. To learn how to use this project,
+  check out the <a href=\"https://github.com/eugestumm/CollectionBuilder-Remix/wiki/1.-Home\"\
+  >project wiki</a>."
 # creator of the digital collection, to appear in meta tags; we typically use our GitHub usernames but feel free to just use your name
 author: Euge Stumm
 
@@ -39,9 +42,12 @@ site_languages:
   lang_display: 'Español'
   lang_site_title: 'CollectionBuilder-Remix: Colección de Demostración'
   lang_site_tagline: Basado en el Archivo Digital de Español No Binario
-  lang_site_description: "Esta colección es una demonstración pedagógica basada en
-    el Archivo Digital de Español No Binario, diseñada para ayudar a les usuaries
-    a familiarizarse con las funciones de CollectionBuilder-Remix."
+  lang_site_description: "Esta colección es una demostración pedagógica basada en
+    el <a href=\"https://eugestumm.github.io/gender-inclusive-spanish-digital-archive/\"\
+    >Archivo Digital de Español No Binario</a>, diseñada para ayudar a les usuaries
+    a familiarizarse con las funciones de CollectionBuilder-Remix. Para aprender a
+    usar este proyecto, consulte la <a href=\"https://github.com/eugestumm/CollectionBuilder-Remix/wiki/1.-Home\"\
+    >wiki del proyecto</a>."
 # Set paths, language ids, and permalinks for pages
 defaults:
 - scope:
